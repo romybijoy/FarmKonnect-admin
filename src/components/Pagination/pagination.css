@@ -1,0 +1,54 @@
+/*.....................Pagination..............................*/
+.paginationDiv {
+    justify-content: center;
+    display: flex;
+  }
+  
+  .paginationDiv .pagination {
+    margin: 15px auto;
+    display: flex;
+    list-style: none;
+    outline: none;
+  }
+  
+  .paginationDiv .pagination > .active > a {
+    background-color: #023E8A;
+    border-color: #023E8A;
+    color: #fff;
+  }
+  
+  .paginationDiv .pagination > li > a {
+    padding: 5px 10px;
+    outline: none;
+    cursor: pointer;
+  }
+  
+  .paginationDiv .pagination > .active > a,
+  .pagination > .active > span,
+  .pagination > .active > a:hover,
+  .pagination > .active > span:hover,
+  .pagination > .active > a:focus,
+  .pagination > .active > span:focus {
+    background-color: #023E8A;
+  
+    outline: none;
+  }
+  
+  .paginationDiv .pagination > li > a,
+  .pagination > li > span {
+    color: #023E8A;
+  }
+  
+  .paginationDiv .pagination > li:first-child > a,
+  .pagination > li:first-child > span,
+  .pagination > li:last-child > a,
+  .pagination > li:last-child > span {
+    border-radius: unset;
+  }
+  
+  .paginationDiv .pagination > .disabled > a {
+    color: #023E8A !important;
+    cursor: default;
+  }
+  
+  

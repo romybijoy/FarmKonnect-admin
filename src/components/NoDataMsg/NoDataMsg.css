@@ -1,0 +1,15 @@
+/*.................No data image.......................*/
+
+.noDataTextDiv {
+    text-align: center;
+    opacity: 0.6;
+  }
+  
+  .noDataImg {
+    width: 60px;
+    margin: auto;
+    justify-content: center;
+    display: flex;
+    opacity: 0.6;
+  }
+  

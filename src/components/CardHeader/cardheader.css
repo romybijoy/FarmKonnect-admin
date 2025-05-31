@@ -1,0 +1,58 @@
+.cmnHdName
+{
+  font-size: 25px;
+  font-family: Roboto, sans-serif;
+}
+.commonInput {
+    width: 100% !important;
+    margin-bottom: 10px !important;
+  }
+  
+  .commonInput input {
+    padding: 0.5rem 1rem;
+    padding-left: 30px;
+    border: 1px solid #0000004d;
+    outline: none;
+    box-shadow: none;
+    text-align: left;
+    color: black;
+    width: 100% !important;
+    height: 35px !important;
+  }
+  
+  .commonInput i {
+    position: absolute;
+  }
+  
+  .cmnSearchIcon {
+    margin-top: 11px !important;
+    margin-left: 5px !important;
+    min-width: 40px;
+    color: #ced4da;
+  }
+
+  /*.....................Count Result................*/
+.commonRecrd {
+    float: right !important;
+  }
+  
+  .cmnRecordIcon {
+    font-size: 15px;
+  }
+  
+  .cmnResutText {
+    opacity: 0.7;
+  }
+  
+  .cmnPageCount {
+    padding: 5px;
+    font-weight: 600;
+    font-size: 18px;
+    opacity: 0.7;
+  }
+  
+  @media (max-width: 575px) {
+    .commonRecrd {
+      float: left !important;
+    }
+  }

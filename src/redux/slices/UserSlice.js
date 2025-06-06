@@ -2,10 +2,12 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { appConfig } from '../../config'
 
 const token = localStorage.getItem('token')
+
+const ip = `${appConfig.ip}/user`;
 //create action
 export const createUser = createAsyncThunk('createUser', async (data, { rejectWithValue }) => {
   console.log('data', data)
-  const response = await fetch(`${appConfig.ip}/register`, {
+  const response = await fetch(`${ip}/register`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -23,7 +25,7 @@ export const createUser = createAsyncThunk('createUser', async (data, { rejectWi
 
 export const refreshToken = createAsyncThunk('refreshToken', async (data, { rejectWithValue }) => {
   console.log('data', data)
-  const response = await fetch(`${appConfig.ip}/auth/refresh`, {
+  const response = await fetch(`${ip}/auth/refresh`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -42,7 +44,7 @@ export const refreshToken = createAsyncThunk('refreshToken', async (data, { reje
 export const showUser = createAsyncThunk('showUser', async (data, { rejectWithValue }) => {
   console.log(data.page)
   let response
-  response = await fetch(`${appConfig.ip}/admin/get-all-users?pageNumber=${data.page}&pageSize=5`, {
+  response = await fetch(`${ip}/get-all-users?pageNumber=${data.page}&pageSize=5`, {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -64,7 +66,7 @@ export const showUsersByKeyword = createAsyncThunk(
     console.log(data.page)
     let response
     response = await fetch(
-      `${appConfig.ip}/admin/get-all-users/keyword/${data.keyword}?pageNumber=${data.page}&pageSize=5`,
+      `${ip}/get-all-users/keyword/${data.keyword}?pageNumber=${data.page}&pageSize=5`,
       {
         method: 'GET',
         headers: {
@@ -87,7 +89,7 @@ export const showUsersByKeyword = createAsyncThunk(
 export const blockUser = createAsyncThunk(
   'blockUser',
   async (data, { rejectWithValue, dispatch }) => {
-    const response = await fetch(`${appConfig.ip}/admin/block/${data.id}`, {
+    const response = await fetch(`${ip}/block/${data.id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -99,7 +101,7 @@ export const blockUser = createAsyncThunk(
     try {
       const result = await response.json()
       console.log(result)
-      dispatch(showUser())
+      dispatch(showUser({ page: 0, pageSize: 5 }))
       return result
     } catch (error) {
       return rejectWithValue(error)
@@ -110,7 +112,7 @@ export const blockUser = createAsyncThunk(
 //update action
 export const updateUser = createAsyncThunk('updateUser', async (data, { rejectWithValue }) => {
   console.log('updated data', data)
-  const response = await fetch(`${appConfig.ip}/admin/update/${data.id}`, {
+  const response = await fetch(`${ip}/update/${data.id}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -129,7 +131,7 @@ export const updateUser = createAsyncThunk('updateUser', async (data, { rejectWi
 
 //update action
 export const fetchUserById = createAsyncThunk('fetchUserById', async (id, { rejectWithValue }) => {
-  const response = await fetch(`${appConfig.ip}/admin/get-users/${id}`, {
+  const response = await fetch(`${ip}/get-users/${id}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -145,6 +147,7 @@ export const fetchUserById = createAsyncThunk('fetchUserById', async (id, { reje
     return rejectWithValue(error)
   }
 })
+
 
 export const userDetail = createSlice({
   name: 'app',

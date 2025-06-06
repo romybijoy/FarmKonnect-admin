@@ -6,10 +6,12 @@ import { Button, Container, Form, Card, Table } from 'react-bootstrap'
 import Pagination from '../../components/Pagination/Pagination'
 import CardHead from '../../components/CardHeader/CardHeader'
 import NodataMsg from '../../components/NoDataMsg/NoDataMsg'
+import { FaUserSlash } from 'react-icons/fa'
 
 import CIcon from '@coreui/icons-react'
 import { cilUserUnfollow } from '@coreui/icons'
-import { CButton, CModal, CModalBody, CModalFooter, CModalHeader, CModalTitle } from '@coreui/react'
+import { CButton, CModal, CModalBody, CModalFooter, CModalHeader, CModalTitle,CFormInput } from '@coreui/react'
+import { toast } from 'react-toastify'
 
 const Users = () => {
   const dispatch = useDispatch()
@@ -82,7 +84,8 @@ const Users = () => {
   const handleBlock = () => {
     dispatch(blockUser({ block_reason: reason, id: id }))
     setVisible(false)
-    dispatch(showUser(searchData))
+    toast.success('User is blocked Successfully')
+    dispatch(showUser({ page: 0, pageSize: 5 }))
   }
 
   const submit = (id) => {
@@ -197,7 +200,7 @@ const Users = () => {
         </Card>
       </Container>
 
-      <CModal
+      {/* <CModal
         alignment="center"
         visible={visible}
         onClose={() => setVisible(false)}
@@ -216,14 +219,46 @@ const Users = () => {
           />
         </CModalBody>
         <CModalFooter>
-          <CButton color="secondary" onClick={() => setVisible(false)}>
-            Close
-          </CButton>
           <CButton color="primary" onClick={handleBlock}>
             Save changes
           </CButton>
         </CModalFooter>
-      </CModal>
+      </CModal> */}
+
+      <CModal
+  alignment="center"
+  visible={visible}
+  onClose={() => setVisible(false)}
+  aria-labelledby="VerticallyCenteredExample"
+>
+  <CModalHeader className="bg-danger text-white">
+    <CModalTitle id="VerticallyCenteredExample">
+      <FaUserSlash className="me-2" /> Block User
+    </CModalTitle>
+  </CModalHeader>
+
+  <CModalBody className="py-4">
+    <label className="form-label fw-semibold">Reason for blocking</label>
+    <CFormInput
+      placeholder="Enter reason..."
+      value={reason}
+      onChange={({ target }) => setReason(target.value)}
+      className="mb-3 shadow-sm"
+    />
+    <p className="text-muted small">
+      The user will be notified and restricted based on your reason.
+    </p>
+  </CModalBody>
+
+  <CModalFooter>
+    <CButton color="secondary" variant="outline" onClick={() => setVisible(false)}>
+      Cancel
+    </CButton>
+    <CButton color="danger" onClick={handleBlock}>
+      Confirm Block
+    </CButton>
+  </CModalFooter>
+</CModal>
     </>
   )
 }

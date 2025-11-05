@@ -32,6 +32,26 @@ const _nav = [
       },
     ],
   },
+
+  
+  {
+    component: CNavTitle,
+    name: 'Posts Management',
+  },
+
+  {
+    component: CNavGroup,
+    name: 'Posts',
+    icon: <CIcon icon={cilUser} style={{ color: '#9AB106' }} customClassName="nav-icon" />,
+    style: { color: '#9AB106' },
+    items: [
+      {
+        component: CNavItem,
+        name: 'Posts',
+        to: '/posts',
+      },
+    ],
+  },
 ]
 
 export default _nav

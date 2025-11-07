@@ -153,10 +153,11 @@ export const userDetail = createSlice({
   name: 'app',
   initialState: {
     users: [],
+    user:null,
     loading: false,
     error: null,
     searchData: [],
-    count: 0,
+    userCount: 0,
     token: localStorage.getItem('token'),
   },
 
@@ -193,7 +194,7 @@ export const userDetail = createSlice({
         if (action.payload.code === 404) {
           state.users = []
         }
-        state.count = action.payload.totalElements
+        state.userCount = action.payload.totalElements
       })
       .addCase(showUser.rejected, (state, action) => {
         state.loading = false
@@ -205,7 +206,7 @@ export const userDetail = createSlice({
       .addCase(showUsersByKeyword.fulfilled, (state, action) => {
         state.loading = false
         state.users = action.payload.content
-        state.count = action.payload.totalElements
+        state.userCount = action.payload.totalElements
       })
       .addCase(showUsersByKeyword.rejected, (state, action) => {
         state.loading = false
@@ -245,17 +246,17 @@ export const userDetail = createSlice({
         state.loading = false
         state.error = action.payload // Optionally handle forced logout here if refresh fails
       })
-    // .addCase(fetchUserById.pending, (state) => {
-    //   state.loading = true;
-    // })
-    // .addCase(fetchUserById.fulfilled, (state, action) => {
-    //   state.loading = false;
-    //   state.user = action.payload.ourUsers;
-    // })
-    // .addCase(fetchUserById.rejected, (state, action) => {
-    //   state.loading = false;
-    //   state.error = action.payload.message;
-    // });
+    .addCase(fetchUserById.pending, (state) => {
+      state.loading = true;
+    })
+    .addCase(fetchUserById.fulfilled, (state, action) => {
+      state.loading = false;
+      state.user = action.payload.ourUsers;
+    })
+    .addCase(fetchUserById.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload.message;
+    });
   },
 })
 

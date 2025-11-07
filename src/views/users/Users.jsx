@@ -1,5 +1,10 @@
 import React, { useEffect, useState } from 'react'
-import { blockUser, showUser, showUsersByKeyword } from '../../redux/slices/UserSlice'
+import {
+  blockUser,
+  showUser,
+  showUsersByKeyword,
+  fetchUserById,
+} from '../../redux/slices/UserSlice'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { Button, Container, Form, Card, Table } from 'react-bootstrap'
@@ -10,7 +15,16 @@ import { FaUserSlash } from 'react-icons/fa'
 
 import CIcon from '@coreui/icons-react'
 import { cilUserUnfollow } from '@coreui/icons'
-import { CButton, CModal, CModalBody, CModalFooter, CModalHeader, CModalTitle,CFormInput } from '@coreui/react'
+import * as coreIcons from '@coreui/icons'
+import {
+  CButton,
+  CModal,
+  CModalBody,
+  CModalFooter,
+  CModalHeader,
+  CModalTitle,
+  CFormInput,
+} from '@coreui/react'
 import { toast } from 'react-toastify'
 
 const Users = () => {
@@ -23,8 +37,8 @@ const Users = () => {
   const [visible, setVisible] = useState(false)
   const [reason, setReason] = useState('')
   const [id, setId] = useState(0)
-
-  const { users, count, loading } = useSelector((state) => state.app)
+  const [detailVisible, setDetailVisible] = useState(false)
+  const { users, userCount, loading, user } = useSelector((state) => state.app)
 
   useEffect(() => {
     dispatch(showUser({ page: 0 }))
@@ -53,6 +67,11 @@ const Users = () => {
     } catch (error) {
       console.error('Error deleting user:', error)
     }
+  }
+
+  const handleViewDetails = async (userId) => {
+    dispatch(fetchUserById(userId))
+    setDetailVisible(true)
   }
 
   function handlePageClick(e) {
@@ -94,7 +113,7 @@ const Users = () => {
   }
 
   let p = page + 1
-  let countPagination = Math.ceil(count / 5)
+  let countPagination = Math.ceil(userCount / 5)
 
   return (
     <>
@@ -103,7 +122,7 @@ const Users = () => {
           <Card.Header>
             <CardHead
               title="Users List"
-              count={count}
+              count={userCount}
               placeholder="User Name/ email"
               value={searchData}
               searchHandler={handleSearch}
@@ -161,8 +180,6 @@ const Users = () => {
                   <th>Name</th>
                   <th>Email</th>
                   <th>Role</th>
-                  <th>Mobile No.</th>
-                  <th>Image</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -178,12 +195,17 @@ const Users = () => {
                       <td>{user?.name}</td>
                       <td>{user?.email}</td>
                       <td>{user?.role === 'ADMIN' ? 'Admin' : 'User'}</td>
-                      <td>{user?.mobile_number}</td>
                       <td>
-                        <img src={user.image} width="100px" height="100px" />
-                      </td>
-                      <td>
-                        <CIcon icon={cilUserUnfollow} size="xl" onClick={() => submit(user?.id)} />
+                        <CIcon
+                          icon={coreIcons.cilNotes}
+                          size="xl"
+                          role="button"
+                          onClick={() => handleViewDetails(user.id)}
+                          title="View Details"
+                          style={{ cursor: 'pointer', color: '#0dcaf0' }} 
+                        />
+                        <CIcon icon={cilUserUnfollow} size="xl" onClick={() => submit(user?.id)} title="Block User"
+                          style={{ cursor: 'pointer', color: 'red' }} className="ms-2"/>
                       </td>
                     </tr>
                   ))
@@ -200,65 +222,76 @@ const Users = () => {
         </Card>
       </Container>
 
-      {/* <CModal
+      {/* View User Details Modal */}
+      <CModal alignment="center" visible={detailVisible} onClose={() => setDetailVisible(false)}>
+        <CModalHeader>
+          <CModalTitle>User Details</CModalTitle>
+        </CModalHeader>
+        <CModalBody>
+          {user ? (
+            <div>
+              <p>
+                <strong>Name:</strong> {user.name?.trim()}
+              </p>
+              <p>
+                <strong>Email:</strong> {user.email?.trim()}
+              </p>
+              <p>
+                <strong>Mobile:</strong> {user.mobile_number}
+              </p>
+              <p>
+                <strong>Role:</strong> {user.role}
+              </p>
+              <p>
+                <strong>About:</strong> {user.about?.trim() || 'N/A'}
+              </p>
+              {user.image && <img src={user.image} alt="User" width="150px" className="mt-2 rounded" />}
+            </div>
+          ) : (
+            <p>Loading user details...</p>
+          )}
+        </CModalBody>
+        <CModalFooter>
+          <CButton color="secondary" onClick={() => setDetailVisible(false)}>
+            Close
+          </CButton>
+        </CModalFooter>
+      </CModal>
+
+      <CModal
         alignment="center"
         visible={visible}
         onClose={() => setVisible(false)}
         aria-labelledby="VerticallyCenteredExample"
       >
-        <CModalHeader>
-          <CModalTitle id="VerticallyCenteredExample">Block User</CModalTitle>
+        <CModalHeader className="bg-danger text-white">
+          <CModalTitle id="VerticallyCenteredExample">
+            <FaUserSlash className="me-2" /> Block User
+          </CModalTitle>
         </CModalHeader>
-        <CModalBody>
-          <input
-            placeholder="Enter Reason"
+
+        <CModalBody className="py-4">
+          <label className="form-label fw-semibold">Reason for blocking</label>
+          <CFormInput
+            placeholder="Enter reason..."
             value={reason}
-            onChange={({ target }) => {
-              setReason(target.value)
-            }}
+            onChange={({ target }) => setReason(target.value)}
+            className="mb-3 shadow-sm"
           />
+          <p className="text-muted small">
+            The user will be notified and restricted based on your reason.
+          </p>
         </CModalBody>
+
         <CModalFooter>
-          <CButton color="primary" onClick={handleBlock}>
-            Save changes
+          <CButton color="secondary" variant="outline" onClick={() => setVisible(false)}>
+            Cancel
+          </CButton>
+          <CButton color="danger" onClick={handleBlock}>
+            Confirm Block
           </CButton>
         </CModalFooter>
-      </CModal> */}
-
-      <CModal
-  alignment="center"
-  visible={visible}
-  onClose={() => setVisible(false)}
-  aria-labelledby="VerticallyCenteredExample"
->
-  <CModalHeader className="bg-danger text-white">
-    <CModalTitle id="VerticallyCenteredExample">
-      <FaUserSlash className="me-2" /> Block User
-    </CModalTitle>
-  </CModalHeader>
-
-  <CModalBody className="py-4">
-    <label className="form-label fw-semibold">Reason for blocking</label>
-    <CFormInput
-      placeholder="Enter reason..."
-      value={reason}
-      onChange={({ target }) => setReason(target.value)}
-      className="mb-3 shadow-sm"
-    />
-    <p className="text-muted small">
-      The user will be notified and restricted based on your reason.
-    </p>
-  </CModalBody>
-
-  <CModalFooter>
-    <CButton color="secondary" variant="outline" onClick={() => setVisible(false)}>
-      Cancel
-    </CButton>
-    <CButton color="danger" onClick={handleBlock}>
-      Confirm Block
-    </CButton>
-  </CModalFooter>
-</CModal>
+      </CModal>
     </>
   )
 }

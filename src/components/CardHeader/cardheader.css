@@ -5,7 +5,8 @@
 }
 .commonInput {
     width: 100% !important;
-    margin-bottom: 10px !important;
+    margin-bottom: 5px !important;
+    margin-top: 5px;
   }
   
   .commonInput input {
@@ -34,6 +35,8 @@
   /*.....................Count Result................*/
 .commonRecrd {
     float: right !important;
+    margin-bottom: 5px !important;
+    margin-top: 5px;
   }
   
   .cmnRecordIcon {

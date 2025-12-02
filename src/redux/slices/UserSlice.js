@@ -3,7 +3,10 @@ import { appConfig } from '../../config'
 
 const token = localStorage.getItem('token')
 
-const ip = `${appConfig.ip}/user`;
+const ip = `${appConfig.ip}/user`
+
+const MIN_SEARCH_LENGTH = 4
+
 //create action
 export const createUser = createAsyncThunk('createUser', async (data, { rejectWithValue }) => {
   console.log('data', data)
@@ -42,16 +45,14 @@ export const refreshToken = createAsyncThunk('refreshToken', async (data, { reje
 })
 //read action
 export const showUser = createAsyncThunk('showUser', async (data, { rejectWithValue }) => {
-  console.log(data.page)
-  let response
-  response = await fetch(`${ip}/get-all-users?pageNumber=${data.page}&pageSize=5`, {
-    method: 'GET',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  })
-
   try {
+    console.log('showUser page:', data.page)
+    const response = await fetch(`${ip}/get-all-users?pageNumber=${data.page}&pageSize=5`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
     const result = await response.json()
     console.log(result)
     return result
@@ -63,19 +64,37 @@ export const showUser = createAsyncThunk('showUser', async (data, { rejectWithVa
 export const showUsersByKeyword = createAsyncThunk(
   'showUsersByKeyword',
   async (data, { rejectWithValue }) => {
-    console.log(data.page)
-    let response
-    response = await fetch(
-      `${ip}/get-all-users/keyword/${data.keyword}?pageNumber=${data.page}&pageSize=5`,
-      {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    )
-
+    console.log(data)
     try {
+      const keyword = (data.keyword || '').trim()
+      console.log('showUsersByKeyword requested keyword:', keyword, 'page:', data.page)
+
+      // SHORT-CIRCUIT: if keyword is present but too short, DO NOT call network
+      if (keyword.length > 0 && keyword.length < MIN_SEARCH_LENGTH) {
+        console.log(
+          `[showUsersByKeyword] blocked network call - keyword length ${keyword.length} < ${MIN_SEARCH_LENGTH}`,
+        )
+        // Return an empty/neutral payload that your reducer can handle.
+        // **Adjust returned shape if your reducer expects other keys.**
+        return {
+          users: [], // <-- replace key if your reducer expects different shape
+          userCount: 0,
+        }
+      }
+
+      // If keyword is empty, you might want to call the regular endpoint, or
+      // you could let callers call showUser instead. We'll still proceed to call the keyword endpoint
+      // only when keyword length >= MIN_SEARCH_LENGTH.
+      const response = await fetch(
+        `${ip}/get-all-users/keyword/${encodeURIComponent(keyword)}?pageNumber=${data.page}&pageSize=5`,
+        {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      )
+
       const result = await response.json()
       console.log(result)
       return result
@@ -148,12 +167,11 @@ export const fetchUserById = createAsyncThunk('fetchUserById', async (id, { reje
   }
 })
 
-
 export const userDetail = createSlice({
   name: 'app',
   initialState: {
     users: [],
-    user:null,
+    user: null,
     loading: false,
     error: null,
     searchData: [],
@@ -246,17 +264,17 @@ export const userDetail = createSlice({
         state.loading = false
         state.error = action.payload // Optionally handle forced logout here if refresh fails
       })
-    .addCase(fetchUserById.pending, (state) => {
-      state.loading = true;
-    })
-    .addCase(fetchUserById.fulfilled, (state, action) => {
-      state.loading = false;
-      state.user = action.payload.ourUsers;
-    })
-    .addCase(fetchUserById.rejected, (state, action) => {
-      state.loading = false;
-      state.error = action.payload.message;
-    });
+      .addCase(fetchUserById.pending, (state) => {
+        state.loading = true
+      })
+      .addCase(fetchUserById.fulfilled, (state, action) => {
+        state.loading = false
+        state.user = action.payload.ourUsers
+      })
+      .addCase(fetchUserById.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload.message
+      })
   },
 })
 

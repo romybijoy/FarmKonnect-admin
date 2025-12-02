@@ -3,7 +3,17 @@ import { Row, Col } from 'react-bootstrap'
 import './cardheader.css'
 
 function CardHeader(props) {
-  const { count, title, searchHandler, placeholder, value, hasSearch = false } = props
+  const {
+    count,
+    title,
+    searchHandler,
+    placeholder,
+    value,
+    role,
+    onRoleChange,
+    hasSearch = false,
+    hasRoleFilter = false,
+  } = props
 
   return (
     <Row>
@@ -24,7 +34,30 @@ function CardHeader(props) {
           </div>
         )}
       </Col>
-      <Col xs={12} sm={6} md={6} lg={3}></Col>{' '}
+      {/* NEW ROLE DROPDOWN (placed inside header!) */}
+      <Col xs={12} sm={6} md={6} lg={3} style={{ margin: 'auto' }}>
+        {hasRoleFilter && (
+          <select
+            name="role"
+            value={role}
+            onChange={onRoleChange}
+            className="form-select"
+            style={{
+              width: 150,
+              height: 35,
+              borderRadius: 5,
+              fontSize: 14,
+              margin: 0,
+              padding: '5px 10px',
+              border: '1px solid #0000004d',
+            }}
+          >
+            <option value="">All Roles</option>
+            <option value="ADMIN">Admin</option>
+            <option value="USER">User</option>
+          </select>
+        )}
+      </Col>
       <Col xs={12} sm={6} md={6} lg={2}>
         <div className="commonRecrd">
           <i className="cui-note cmnRecordIcon"></i>

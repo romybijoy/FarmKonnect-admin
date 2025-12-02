@@ -3,7 +3,8 @@ import CIcon from '@coreui/icons-react'
 import {
   cilSpeedometer,
   cilUser,
-  cilListRich
+  cilListRich,
+  cilListFilter
 } from '@coreui/icons'
 import { CNavGroup, CNavItem, CNavTitle } from '@coreui/react'
 
@@ -50,6 +51,25 @@ const _nav = [
         component: CNavItem,
         name: 'Posts',
         to: '/posts',
+      },
+    ],
+  },
+
+   {
+    component: CNavTitle,
+    name: 'Report Post Management',
+  },
+
+  {
+    component: CNavGroup,
+    name: 'Report Posts',
+    icon: <CIcon icon={cilListFilter} style={{ color: '#9AB106' }} customClassName="nav-icon" />,
+    style: { color: '#9AB106' },
+    items: [
+      {
+        component: CNavItem,
+        name: 'Report Posts',
+        to: '/reports',
       },
     ],
   },

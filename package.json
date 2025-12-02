@@ -21,9 +21,11 @@
     "@coreui/utils": "^2.0.2",
     "@popperjs/core": "^2.11.8",
     "@reduxjs/toolkit": "^2.2.7",
+    "@stomp/stompjs": "^7.2.1",
     "chart.js": "^4.4.3",
     "classnames": "^2.5.1",
     "core-js": "^3.37.1",
+    "dayjs": "^1.11.19",
     "dotenv": "^16.4.5",
     "farmkonnect": "file:",
     "FarmKonnect": "file:",
@@ -44,6 +46,8 @@
     "react-toastify": "^10.0.5",
     "redux": "5.0.1",
     "simplebar-react": "^3.2.5",
+    "sockjs-client": "^1.6.1",
+    "uuid": "^13.0.0",
     "yup": "^1.4.0"
   },
   "devDependencies": {

@@ -5,6 +5,7 @@ import { ApiSlice } from './slices/ApiSlice'
 import SidebarSlice from './slices/SidebarSlice'
 import DashboardSlice from './slices/DashboardSlice'
 import PostSlice from './slices/PostSlice'
+import ReportsSlice from './slices/ReportsSlice'
 
 const store = configureStore({
   reducer: {
@@ -13,7 +14,8 @@ const store = configureStore({
     auth: AuthSlice,
     sidebar: SidebarSlice,
     dashboard: DashboardSlice,
-    post: PostSlice
+    post: PostSlice,
+    reports: ReportsSlice
   },
   middleware: (getDefaultMiddleware) => getDefaultMiddleware({ serializableCheck: false }),
   devTools: true,

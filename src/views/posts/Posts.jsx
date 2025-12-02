@@ -226,7 +226,8 @@ const Posts = () => {
               <CModalTitle className="fw-semibold fs-5">Post Details</CModalTitle>
             </div>
             <small className="text-muted m-xl-2">
-              Created On {selectedPost?.createdAt
+              Created On{' '}
+              {selectedPost?.createdAt
                 ? new Date(selectedPost.createdAt).toLocaleString('en-IN', {
                     dateStyle: 'medium',
                     timeStyle: 'short',
@@ -265,19 +266,17 @@ const Posts = () => {
                   <div className="fw-semibold">{selectedPost.userName}</div>
                 </div>
 
-               <div className="col-12 mt-3">
-            <div className="d-flex flex-wrap gap-3">
-              <span className="badge text-bg-secondary">
-                Comments: {selectedPost.commentCount ?? 0}
-              </span>
-              <span className="badge text-bg-info">
-                Saves: {selectedPost.saveCount ?? 0}
-              </span>
-              <span className="badge text-bg-success">
-                Likes: {selectedPost.likeCount ?? 0}
-              </span>
-            </div>
-          </div>
+                <div className="col-12 mt-3">
+                  <div className="d-flex flex-wrap gap-3">
+                    <span className="badge text-bg-secondary">
+                      Comments: {selectedPost.commentCount ?? 0}
+                    </span>
+                    <span className="badge text-bg-info">Saves: {selectedPost.saveCount ?? 0}</span>
+                    <span className="badge text-bg-success">
+                      Likes: {selectedPost.likeCount ?? 0}
+                    </span>
+                  </div>
+                </div>
               </div>
 
               {/* Second row: Content Preview + Media */}
@@ -299,16 +298,29 @@ const Posts = () => {
                   <div className="card shadow-sm border-0 h-100 d-flex align-items-center justify-content-center">
                     <div className="card-body text-center">
                       <h6 className="fw-semibold mb-3">Media</h6>
-                      {selectedPost.postImage ? (
-                        <img
-                          src={selectedPost.postImage}
-                          alt="Post"
-                          className="img-fluid rounded-3 shadow-sm"
+                      {selectedPost.postImages && selectedPost.postImages.length > 0 ? (
+                        <div
                           style={{
-                            maxHeight: '260px',
-                            objectFit: 'cover',
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(2, 1fr)',
+                            gap: '10px',
+                            padding: '10px',
                           }}
-                        />
+                        >
+                          {selectedPost.postImages.map((img, index) => (
+                            <img
+                              key={index}
+                              src={img}
+                              alt={`media-${index}`}
+                              style={{
+                                width: '100%',
+                                height: '140px',
+                                objectFit: 'cover',
+                                borderRadius: '10px',
+                              }}
+                            />
+                          ))}
+                        </div>
                       ) : (
                         <div className="text-muted small">No image available</div>
                       )}

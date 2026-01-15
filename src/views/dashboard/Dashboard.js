@@ -8,6 +8,7 @@ import { showUser } from '../../redux/slices/UserSlice'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import ReportsPanel from './ReportsPanel'
+import { fetchReports } from '../../redux/slices/ReportsSlice'
 
 /**
  * AdminSocialDashboard.jsx
@@ -23,9 +24,13 @@ export default function Dashboard() {
   // const { total } = reportsState
   const { userCount, users } = useSelector((state) => state.app)
 
+  const reportsState = useSelector((s) => s.reports)
+  const { total } = reportsState
+
   useEffect(() => {
     dispatch(showPosts({ page: 0 }))
     dispatch(showUser({ page: 0 }))
+    dispatch(fetchReports({ status: 'PENDING' }))
   }, [])
   // --- MOCK DATA (replace with real) ---
 
@@ -36,7 +41,7 @@ export default function Dashboard() {
       totalUsers: userCount ?? 0,
       totalPosts: count ?? 0,
       activeToday: userCount ?? 0,
-      pendingReports: 18 ?? 0,
+      pendingReports: total ?? 0,
       trendUsers: '+3.2%',
       trendPosts: '+1.1%',
       trendActive: '+12%',

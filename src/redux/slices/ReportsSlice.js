@@ -46,52 +46,54 @@ export const fetchReports = createAsyncThunk(
  */
 
 export const reviewReport = createAsyncThunk(
-  "reports/reviewReport",
+  'reports/reviewReport',
   async ({ adminId, reportId, action, reason }, { rejectWithValue }) => {
-    console.log(adminId);
+    console.log(adminId)
     try {
-      const url = `${ip}/admin/posts/reports/${reportId}/review`;
+      const url = `${ip}/admin/posts/reports/${reportId}/review`
       const res = await fetch(url, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({ action, adminId, reason }),
-      });
+      })
 
       // Auth
       if (res.status === 401 || res.status === 403) {
-        return rejectWithValue(`Unauthorized (${res.status}). Check admin token.`);
+        return rejectWithValue(`Unauthorized (${res.status}). Check admin token.`)
       }
 
       // Non-OK handling: try to extract json or text for helpful message
       if (!res.ok) {
-        const ct = res.headers.get("content-type") || "";
-        const body = ct.includes("application/json")
+        const ct = res.headers.get('content-type') || ''
+        const body = ct.includes('application/json')
           ? await res.json().catch(() => null)
-          : await res.text().catch(() => null);
+          : await res.text().catch(() => null)
         const message =
-          (body && (body.message || (typeof body === "string" ? body : JSON.stringify(body)))) ||
-          `Failed to review report (${res.status})`;
-        return rejectWithValue(message);
+          (body && (body.message || (typeof body === 'string' ? body : JSON.stringify(body)))) ||
+          `Failed to review report (${res.status})`
+        return rejectWithValue(message)
       }
 
       // Success: parse JSON if present (your controller returns JSON)
-      const contentType = res.headers.get("content-type") || "";
-      const data = contentType.includes("application/json") ? await res.json().catch(() => null) : null;
+      const contentType = res.headers.get('content-type') || ''
+      const data = contentType.includes('application/json')
+        ? await res.json().catch(() => null)
+        : null
 
       // Return meaningful payload for reducer
-      return { reportId, action, data };
+      return { reportId, action, data }
     } catch (err) {
-      return rejectWithValue(err.message || "Network error");
+      return rejectWithValue(err.message || 'Network error')
     }
-  }
-);
+  },
+)
 
 export const fetchReportsbyDate = createAsyncThunk(
   'reports/fetchReportsbyDate',
-  async ({ startDate, endDate, filter, page=0, size=50 }, { rejectWithValue }) => {
+  async ({ startDate, endDate, filter, page = 0, size = 50 }, { rejectWithValue }) => {
     try {
       const params = new URLSearchParams()
       if (filter) params.append('filter', filter)
@@ -103,7 +105,7 @@ export const fetchReportsbyDate = createAsyncThunk(
       if (endDate) {
         // set end of day -> 23:59:59.999 to include whole day
         const d = new Date(endDate)
-        d.setHours(23,59,59,999)
+        d.setHours(23, 59, 59, 999)
         params.append('to', d.toISOString())
       }
       params.append('page', page)
@@ -125,8 +127,8 @@ export const fetchReportsbyDate = createAsyncThunk(
     } catch (err) {
       return rejectWithValue(err.message)
     }
-  }
-);
+  },
+)
 
 const initialState = {
   items: [], // normalized list of reports
@@ -138,8 +140,7 @@ const initialState = {
   reviewStatus: 'idle',
   reviewError: null,
   data: null,
-    loading: false,
-    error: null
+  loading: false,
 }
 
 const reportsSlice = createSlice({

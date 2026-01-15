@@ -20,12 +20,12 @@ export default function ReportDetailModal({ report, onClose, onAction, processin
           <div style={{ whiteSpace: "pre-wrap", marginTop: 6 }}>{report.details || "No details provided."}</div>
 
           <div style={{ marginTop: 12 }}>
-            <strong>Reporter:</strong> {report.reporterId || "Unknown"} • <small>Reported at: {new Date(report.createdAt || Date.now()).toLocaleString()}</small>
+            <strong>Reporter:</strong> {report.reporterId || "Unknown"} <br/>• <small>Reported at: {new Date(report.createdAt || Date.now()).toLocaleString()}</small>
           </div>
 
-          <div style={{ marginTop: 12 }}>
+          {/* <div style={{ marginTop: 12 }}>
             <a href={`/posts/${report.postId}`} target="_blank" rel="noreferrer">View Post</a>
-          </div>
+          </div> */}
         </section>
 
         <footer style={{ marginTop: 14, display: "flex", justifyContent: "flex-end", gap: 8 }}>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Form, Row, Col, Button, Table } from 'react-bootstrap'
+import { Form, Row, Col, Button, Table, ButtonGroup } from 'react-bootstrap'
 import * as XLSX from 'xlsx'
 import { jsPDF } from 'jspdf'
 import 'jspdf-autotable'
@@ -9,60 +9,108 @@ import { useDispatch, useSelector } from 'react-redux'
 import NodataMsg from '../../components/NoDataMsg/NoDataMsg'
 
 const ReportPost = () => {
+  const dispatch = useDispatch()
+
+  const [filterType, setFilterType] = useState('weekly')
   const [startDate, setStartDate] = useState(null)
   const [endDate, setEndDate] = useState(null)
   const [page, setPage] = useState(0)
-  const dispatch = useDispatch()
-
   const { data: reportsPage, loading, error } = useSelector((s) => s.reports)
 
   useEffect(() => {
-    // initial load (last 7 days)
     dispatch(fetchReportsbyDate({ filter: 'weekly', page: 0, size: 100 }))
   }, [dispatch])
 
-  const filterData = () => {
-    dispatch(fetchReportsbyDate({ startDate, endDate, page: 0, size: 500 }))
+  const applyFilter = (type) => {
+    setFilterType(type)
+
+    // if (type === 'custom') return
+
+    setStartDate(null)
+    setEndDate(null)
+
+    dispatch(
+      fetchReportsbyDate({
+        filter: type,
+        page: 0,
+        size: 100,
+      }),
+    )
+  }
+
+  const applyCustomRange = () => {
+    dispatch(
+      fetchReportsbyDate({
+        startDate,
+        endDate,
+        page: 0,
+        size: 500,
+      }),
+    )
   }
 
   const resetData = () => {
     setStartDate(null)
     setEndDate(null)
-    dispatch(fetchReportsbyDate({ filter: 'weekly', page: 0, size: 100 }))
+    setPage(0)
+
+    dispatch(fetchReportsbyDate({ startDate, endDate, page: 0, size: 100 }))
   }
 
   const reports = reportsPage?.content || []
 
-  const downloadExcel = () => {
-    if (!reports || reports.length === 0) return
+ const downloadExcel = () => {
+  if (!reports || reports.length === 0) return
 
-    const wb = XLSX.utils.book_new()
+  const wb = XLSX.utils.book_new()
 
-    // Summary sheet
-    const summary = [
-      ['Report count', reports.length],
-      ['From', startDate ? new Date(startDate).toLocaleString() : ''],
-      ['To', endDate ? new Date(endDate).toLocaleString() : ''],
-    ]
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summary), 'Summary')
+  // 🔹 Summary sheet
+  const summary = [
+    ['Exported At', new Date().toLocaleString()],
+    ['Filter Type', filterType.toUpperCase()],
+    ['Report Count', reports.length],
+    ['From Date', startDate ? new Date(startDate).toLocaleDateString() : '-'],
+    ['To Date', endDate ? new Date(endDate).toLocaleDateString() : '-']
+  ]
 
-    // Rows sheet - flatten DTOs
-    const rows = reports.map((r) => ({
-      id: r.id,
-      postId: r.postId,
-      reporterId: r.reporterId,
-      reason: r.reason,
-      details: r.details,
-      status: r.status,
-      adminId: r.adminId,
-      createdAt: r.createdAt,
-      reviewedAt: r.reviewedAt
-    }))
+  const summarySheet = XLSX.utils.aoa_to_sheet(summary)
+  XLSX.utils.book_append_sheet(wb, summarySheet, 'Summary')
 
-    const ws = XLSX.utils.json_to_sheet(rows)
-    XLSX.utils.book_append_sheet(wb, ws, 'Reports')
-    XLSX.writeFile(wb, 'Reports.xlsx')
-  }
+  // 🔹 Rows (explicit column order + formatted dates)
+  const rows = reports.map((r) => ({
+    'Report ID': r.id,
+    'Post ID': r.postId,
+    'Reporter ID': r.reporterId,
+    'Reason': r.reason || '',
+    'Details': r.details || '',
+    'Status': r.status,
+    'Admin ID': r.adminId || '',
+    'Created At': new Date(r.createdAt).toLocaleString(),
+    'Reviewed At': r.reviewedAt
+      ? new Date(r.reviewedAt).toLocaleString()
+      : ''
+  }))
+
+  const ws = XLSX.utils.json_to_sheet(rows, { skipHeader: false })
+
+  // 🔹 Column widths
+  ws['!cols'] = [
+    { wch: 38 },
+    { wch: 38 },
+    { wch: 38 },
+    { wch: 20 },
+    { wch: 30 },
+    { wch: 15 },
+    { wch: 38 },
+    { wch: 22 },
+    { wch: 22 }
+  ]
+
+  XLSX.utils.book_append_sheet(wb, ws, 'Reports')
+
+  XLSX.writeFile(wb, `Reports_${filterType}_${Date.now()}.xlsx`)
+}
+
 
   const downloadPDF = () => {
     if (!reports || reports.length === 0) return
@@ -77,7 +125,7 @@ const ReportPost = () => {
       r.postId,
       r.reporterId,
       r.status,
-      r.reason || ''
+      r.reason || '',
     ])
 
     doc.autoTable({
@@ -85,7 +133,7 @@ const ReportPost = () => {
       body,
       startY: 60,
       styles: { fontSize: 8 },
-      headStyles: { fillColor: [22, 160, 133] }
+      headStyles: { fillColor: [22, 160, 133] },
     })
 
     doc.save('Reports.pdf')
@@ -94,50 +142,84 @@ const ReportPost = () => {
   return (
     <div>
       <h3>Reports</h3>
-      <Form>
-        <Form.Group as={Row} controlId="formStartDate">
-          <Form.Label column sm={2}>
-            Start Date
-          </Form.Label>
-          <Col sm={4}>
-            <DatePicker
-              selected={startDate}
-              onChange={(date) => setStartDate(date)}
-              className="form-control"
-              dateFormat="yyyy-MM-dd"
-              placeholderText="Select start date"
-            />
-          </Col>
-        </Form.Group>
 
-        <Form.Group as={Row} className="pt-2" controlId="formEndDate">
-          <Form.Label column sm={2}>
-            End Date
-          </Form.Label>
-          <Col sm={4}>
-            <DatePicker
-              selected={endDate}
-              onChange={(date) => setEndDate(date)}
-              className="form-control"
-              dateFormat="yyyy-MM-dd"
-              placeholderText="Select end date"
-            />
-          </Col>
-        </Form.Group>
+      {/* 🔘 Filter Buttons */}
+      <ButtonGroup className="mb-3">
+        <Button
+          variant={filterType === 'daily' ? 'primary' : 'outline-primary'}
+          onClick={() => applyFilter('daily')}
+        >
+          Daily
+        </Button>
 
-        <div className="pt-3">
-          <Button className="m-2" onClick={filterData}>
-            Select Date Range
-          </Button>
-          <Button onClick={resetData}>Reset</Button>
-        </div>
-      </Form>
+        <Button
+          variant={filterType === 'weekly' ? 'primary' : 'outline-primary'}
+          onClick={() => applyFilter('weekly')}
+        >
+          Weekly
+        </Button>
 
-      {loading ? (
-        <h5 className="mt-3">Loading...</h5>
-      ) : reports && reports.length > 0 ? (
-        <>
-          <Table className="mt-4" striped bordered hover responsive size="sm">
+        <Button
+          variant={filterType === 'monthly' ? 'primary' : 'outline-primary'}
+          onClick={() => applyFilter('monthly')}
+        >
+          Monthly
+        </Button>
+
+        <Button
+          variant={filterType === 'custom' ? 'primary' : 'outline-primary'}
+          onClick={() => applyFilter('custom')}
+        >
+          Custom
+        </Button>
+      </ButtonGroup>
+
+      {/* 📅 Custom Date Range */}
+      {filterType === 'custom' && (
+        <Form className="mb-3">
+          <Form.Group as={Row} className="mb-2">
+            <Form.Label column sm={2}>
+              Start Date
+            </Form.Label>
+            <Col sm={4}>
+              <DatePicker
+                selected={startDate}
+                onChange={setStartDate}
+                className="form-control"
+                dateFormat="yyyy-MM-dd"
+                placeholderText="Select start date"
+              />
+            </Col>
+          </Form.Group>
+
+          <Form.Group as={Row} className="mb-2">
+            <Form.Label column sm={2}>
+              End Date
+            </Form.Label>
+            <Col sm={4}>
+              <DatePicker
+                selected={endDate}
+                onChange={setEndDate}
+                className="form-control"
+                dateFormat="yyyy-MM-dd"
+                placeholderText="Select end date"
+              />
+            </Col>
+          </Form.Group>
+
+          <div className="pt-3">
+            <Button className="m-2" onClick={applyCustomRange}>Apply</Button>
+            <Button onClick={resetData}>Reset</Button>
+          </div>
+        </Form>
+      )}
+
+      {/* Data Table */}
+      <>
+        {loading ? (
+          <h5>Loading...</h5>
+        ) : reports.length > 0 ? (
+          <Table striped bordered hover responsive size="sm">
             <thead>
               <tr>
                 <th>Created At</th>
@@ -161,19 +243,18 @@ const ReportPost = () => {
               ))}
             </tbody>
           </Table>
+        ) : (
+          <NodataMsg />
+        )}
+        <div className="pt-3">
+          <Button className="m-2" onClick={downloadExcel}>
+            Download Excel
+          </Button>
+          <Button onClick={downloadPDF}>Download PDF</Button>
+        </div>
+      </>
 
-          <div className="pt-3">
-            <Button className="m-2" onClick={downloadExcel}>
-              Download Excel
-            </Button>
-            <Button onClick={downloadPDF}>Download PDF</Button>
-          </div>
-        </>
-      ) : (
-        <NodataMsg />
-      )}
-
-      {error && <div className="text-danger mt-2">{error}</div>}
+      {error && <div className="text-danger">{error}</div>}
     </div>
   )
 }

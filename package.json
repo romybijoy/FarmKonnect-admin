@@ -6,7 +6,7 @@
   "license": "MIT",
   "author": "The FarmKonnect Team",
   "scripts": {
-    "build": "node --max-old-space-size=4096 vite build",
+    "build": "vite build",
     "lint": "eslint \"src/**/*.js\"",
     "serve": "vite preview",
     "start": "vite"
@@ -27,8 +27,6 @@
     "core-js": "^3.37.1",
     "dayjs": "^1.11.19",
     "dotenv": "^16.4.5",
-    "farmkonnect": "file:",
-    "FarmKonnect": "file:",
     "firebase": "^10.13.1",
     "formik": "^2.4.6",
     "patch-package": "^8.0.0",

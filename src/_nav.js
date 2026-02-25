@@ -3,12 +3,17 @@ import CIcon from '@coreui/icons-react'
 import {
   cilSpeedometer,
   cilUser,
+  cilPeople,
   cilListRich,
-  cilListFilter
+  cilListFilter,
+  cilDescription,
+  cilBalanceScale,
+  cilWarning,
 } from '@coreui/icons'
 import { CNavGroup, CNavItem, CNavTitle } from '@coreui/react'
 
 const _nav = [
+  // ================= DASHBOARD =================
   {
     component: CNavItem,
     name: 'Dashboard',
@@ -16,60 +21,68 @@ const _nav = [
     icon: <CIcon icon={cilSpeedometer} style={{ color: '#9AB106' }} customClassName="nav-icon" />,
   },
 
+  // ================= USER MANAGEMENT =================
   {
     component: CNavTitle,
-    name: 'Users Management',
+    name: 'User Management',
   },
 
   {
     component: CNavGroup,
     name: 'Users',
-    icon: <CIcon icon={cilUser} style={{ color: '#9AB106' }} customClassName="nav-icon" />,
-    style: { color: '#9AB106' },
+    icon: <CIcon icon={cilPeople} style={{ color: '#9AB106' }} customClassName="nav-icon" />,
     items: [
       {
         component: CNavItem,
-        name: 'Users',
+        name: 'All Users',
         to: '/users',
+        icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
       },
     ],
   },
 
-  
+  // ================= CONTENT MANAGEMENT =================
   {
     component: CNavTitle,
-    name: 'Posts Management',
+    name: 'Content Management',
   },
 
   {
     component: CNavGroup,
     name: 'Posts',
     icon: <CIcon icon={cilListRich} style={{ color: '#9AB106' }} customClassName="nav-icon" />,
-    style: { color: '#9AB106' },
     items: [
       {
         component: CNavItem,
-        name: 'Posts',
+        name: 'All Posts',
         to: '/posts',
+        icon: <CIcon icon={cilDescription} customClassName="nav-icon" />,
       },
     ],
   },
 
-   {
+  // ================= MODERATION =================
+  {
     component: CNavTitle,
-    name: 'Report Post Management',
+    name: 'Moderation',
   },
 
   {
     component: CNavGroup,
-    name: 'Report Posts',
+    name: 'Moderation',
     icon: <CIcon icon={cilListFilter} style={{ color: '#9AB106' }} customClassName="nav-icon" />,
-    style: { color: '#9AB106' },
     items: [
       {
         component: CNavItem,
-        name: 'Report Posts',
+        name: 'Reports',
         to: '/reports',
+        icon: <CIcon icon={cilWarning} customClassName="nav-icon" />,
+      },
+      {
+        component: CNavItem,
+        name: 'Appeals',
+        to: '/appeals',
+        icon: <CIcon icon={cilBalanceScale} customClassName="nav-icon" />,
       },
     ],
   },

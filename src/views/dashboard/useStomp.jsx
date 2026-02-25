@@ -1,7 +1,7 @@
 // useStomp.js
-import { useEffect, useRef } from "react";
-import { Client } from "@stomp/stompjs";
-import SockJS from "sockjs-client";
+import { useEffect, useRef } from 'react'
+import { Client } from '@stomp/stompjs'
+import SockJS from 'sockjs-client'
 
 /**
  * useStomp hook
@@ -20,8 +20,8 @@ import SockJS from "sockjs-client";
  *     }
  *   });
  */
-export default function useStomp({ url = "/ws-endpoint", token, handlers = {} } = {}) {
-  const clientRef = useRef(null);
+export default function useStomp({ url = '/ws-endpoint', token, handlers = {} } = {}) {
+  const clientRef = useRef(null)
 
   useEffect(() => {
     // Create client
@@ -35,59 +35,63 @@ export default function useStomp({ url = "/ws-endpoint", token, handlers = {} } 
       heartbeatOutgoing: 10000,
       webSocketFactory: () => {
         // Use SockJS to create a WebSocket-like object for servers that expose SockJS
-        return new SockJS(url);
+        return new SockJS(url)
       },
       onConnect: () => {
         // subscribe to topics after connect
         try {
           // example topic names — adapt to backend
-          client.subscribe("/topic/reports.created", (msg) => {
-            if (msg.body && handlers.onCreated) handlers.onCreated(JSON.parse(msg.body));
-          });
+          client.subscribe('/topic/reports.created', (msg) => {
+            if (msg.body && handlers.onCreated) handlers.onCreated(JSON.parse(msg.body))
+          })
 
-          client.subscribe("/topic/reports.reviewed", (msg) => {
-            if (msg.body && handlers.onReviewed) handlers.onReviewed(JSON.parse(msg.body));
-          });
+          client.subscribe('/topic/reports.reviewed', (msg) => {
+            if (msg.body && handlers.onReviewed) handlers.onReviewed(JSON.parse(msg.body))
+          })
 
-          client.subscribe("/topic/posts.moderated", (msg) => {
-            if (msg.body && handlers.onModerated) handlers.onModerated(JSON.parse(msg.body));
-          });
+          client.subscribe('/topic/posts.moderated', (msg) => {
+            if (msg.body && handlers.onModerated) handlers.onModerated(JSON.parse(msg.body))
+          })
+
+          client.subscribe('/topic/appeals.created', (msg) => {
+            if (handlers.onAppealCreated) handlers.onAppealCreated(JSON.parse(msg.body))
+          })
         } catch (err) {
           // eslint-disable-next-line no-console
-          console.warn("STOMP subscribe failed", err);
+          console.warn('STOMP subscribe failed', err)
         }
       },
       onStompError: (frame) => {
         // server reported error (protocol-level)
         // eslint-disable-next-line no-console
-        console.error("Broker reported error: ", frame?.headers, frame?.body);
+        console.error('Broker reported error: ', frame?.headers, frame?.body)
       },
       onWebSocketError: (evt) => {
         // eslint-disable-next-line no-console
-        console.error("WebSocket error", evt);
-      }
-    });
+        console.error('WebSocket error', evt)
+      },
+    })
 
     // add auth header if token present
     if (token) {
       client.connectHeaders = {
         Authorization: `Bearer ${token}`,
-      };
+      }
     }
 
-    clientRef.current = client;
-    client.activate();
+    clientRef.current = client
+    client.activate()
 
     return () => {
       try {
-        client.deactivate();
+        client.deactivate()
       } catch (e) {
         // ignore
       }
-      clientRef.current = null;
-    };
+      clientRef.current = null
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [url, token, handlers.onCreated, handlers.onReviewed, handlers.onModerated]);
+  }, [url, token, handlers.onCreated, handlers.onReviewed, handlers.onModerated])
 
-  return { clientRef };
+  return { clientRef }
 }

@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react'
 import CIcon from '@coreui/icons-react'
 import * as icons from '@coreui/icons'
-import { Button, Card, Table, Form } from 'react-bootstrap'
+import { Button, Card, Table, Form, Tabs, Tab } from 'react-bootstrap'
 
 import { showPosts } from '../../redux/slices/PostSlice'
 import { showUser } from '../../redux/slices/UserSlice'
@@ -9,6 +9,8 @@ import { useDispatch, useSelector } from 'react-redux'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import ReportsPanel from './ReportsPanel'
 import { fetchReports } from '../../redux/slices/ReportsSlice'
+import { fetchAppeals } from '../../redux/slices/AppealSlice'
+import AppealsPanel from './AppealsPanel'
 
 /**
  * AdminSocialDashboard.jsx
@@ -28,13 +30,12 @@ export default function Dashboard() {
   const { total } = reportsState
 
   useEffect(() => {
-    dispatch(showPosts({ page: 0 }))
+    dispatch(showPosts({ page: 0, pageSize: 5 }))
     dispatch(showUser({ page: 0 }))
     dispatch(fetchReports({ status: 'PENDING' }))
+    dispatch(fetchAppeals({status: 'PENDING'}))
   }, [])
   // --- MOCK DATA (replace with real) ---
-
-  console.log(posts)
 
   const stats = useMemo(
     () => ({
@@ -50,63 +51,8 @@ export default function Dashboard() {
     [count, userCount],
   )
 
-  const moderationQueue = useMemo(
-    () => [
-      {
-        id: 'RPT-1024',
-        postId: 'POST-9ed1',
-        reason: 'Hate speech',
-        reporter: 'ann-k',
-        createdAt: '2025-07-21 09:02',
-        status: 'Pending',
-      },
-      {
-        id: 'RPT-1023',
-        postId: 'POST-3bd9',
-        reason: 'Spam',
-        reporter: 'liam',
-        createdAt: '2025-07-21 08:40',
-        status: 'Pending',
-      },
-      {
-        id: 'RPT-1022',
-        postId: 'POST-7712',
-        reason: 'Nudity',
-        reporter: 'sam',
-        createdAt: '2025-07-21 08:19',
-        status: 'Escalated',
-      },
-      {
-        id: 'RPT-1021',
-        postId: 'POST-55aa',
-        reason: 'Harassment',
-        reporter: 'rhea',
-        createdAt: '2025-07-21 07:58',
-        status: 'Pending',
-      },
-    ],
-    [],
-  )
-
-  const topPosts = useMemo(
-    () => [
-      { postId: 'POST-1a2b', author: 'Romy Rose Jimmy', likes: 321, comments: 42, saves: 19 },
-      { postId: 'POST-99c3', author: 'Nina', likes: 298, comments: 58, saves: 25 },
-      { postId: 'POST-55ff', author: 'Arun', likes: 221, comments: 34, saves: 11 },
-      { postId: 'POST-77d1', author: 'Zara', likes: 205, comments: 29, saves: 17 },
-    ],
-    [],
-  )
-
-  const recentUsers = useMemo(
-    () => [
-      { name: 'Akash Kumar', email: 'akash@example.com' },
-      { name: 'Maryam Iqbal', email: 'maryam@example.com' },
-      { name: 'Lee Chen', email: 'lee@example.com' },
-      { name: 'Saanvi Rao', email: 'saanvi@example.com' },
-    ],
-    [],
-  )
+  const adminAppeals = useSelector((state) => state.appeals)
+  const { items: pendingAppeals } = adminAppeals
 
   // --- Helpers ---
   const Initials = ({ name }) => {
@@ -216,6 +162,14 @@ export default function Dashboard() {
             tone="danger"
           />
         </div>
+        <div className="col-12 col-sm-6 col-xl-3">
+          <StatCard
+            title="Pending Appeals"
+            value={pendingAppeals?.length ?? 0}
+            icon={icons.cilBalanceScale}
+            tone="warning"
+          />
+        </div>
       </div>
 
       {/* Middle Row: Moderation + Top Posts */}
@@ -282,9 +236,17 @@ export default function Dashboard() {
               </Table>
             </Card.Body> */}
 
-            <aside>
-              <ReportsPanel onCountChange={(n) => console.log('pending reports', n)} />
-            </aside>
+            <Card.Body className="pt-0">
+              <Tabs defaultActiveKey="reports" className="mb-3">
+                <Tab eventKey="reports" title="Reports">
+                  <ReportsPanel />
+                </Tab>
+
+                <Tab eventKey="appeals" title="Appeals">
+                  <AppealsPanel />
+                </Tab>
+              </Tabs>
+            </Card.Body>
           </Card>
         </div>
 

@@ -12,7 +12,7 @@ const ip = `${appConfig.ip}/api/post`
  */
 export const fetchReports = createAsyncThunk(
   'reports/fetchReports',
-  async ({ status = 'PENDING', page = 0, size = 20 } = {}, { rejectWithValue }) => {
+  async ({ status = 'PENDING', page = 0, size = 5 } = {}, { rejectWithValue }) => {
     try {
       const res = await fetch(
         `${ip}/admin/posts/reports?status=${encodeURIComponent(status)}&page=${page}&size=${size}`,

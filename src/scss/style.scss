@@ -13,3 +13,15 @@
 
 // If you want to add custom CSS you can put it here
 @import "custom";
+
+
+/* ================= Sidebar Submenu Indentation ================= */
+
+.sidebar {
+  .nav-group-items {
+    .nav-link {
+      padding-left: 4rem !important;  // increase indent
+      font-size: 0.92rem;              // optional: slightly smaller
+    }
+  }
+}

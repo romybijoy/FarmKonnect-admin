@@ -19,6 +19,7 @@ import {
   CFormInput,
 } from '@coreui/react'
 import { toast } from 'react-toastify'
+import PostDetails from '../modals/PostDetails'
 
 const Posts = () => {
   const navigate = useNavigate()
@@ -32,11 +33,11 @@ const Posts = () => {
   const [id, setId] = useState(0)
   const [detailVisible, setDetailVisible] = useState(false)
   const [selectedPost, setSelectedPost] = useState(null)
-
   const { posts, count, loading } = useSelector((state) => state.post)
+  const PAGE_SIZE = 5;
 
   useEffect(() => {
-    dispatch(showPosts({ page: 0 }))
+    dispatch(showPosts({ page: 0, pageSize: PAGE_SIZE }))
   }, [])
 
   if (loading) {
@@ -70,7 +71,7 @@ const Posts = () => {
   function handlePageClick(e) {
     const selectedPage = e.selected
     console.log(selectedPage)
-    dispatch(showPosts({ page: selectedPage }))
+    dispatch(showPosts({ page: selectedPage, pageSize: PAGE_SIZE }))
     setPage(selectedPage)
   }
 
@@ -79,9 +80,9 @@ const Posts = () => {
     console.log(searchVal)
     setSearchData(searchVal)
     if (searchVal !== '') {
-      dispatch(showPostsByKeyword({ page: 0, keyword: searchVal }))
+      dispatch(showPostsByKeyword({ page: 0, keyword: searchVal, pageSize: PAGE_SIZE }))
     } else {
-      dispatch(showPosts({ page: 0, pageSize: 5 }))
+      dispatch(showPosts({ page: 0, pageSize: PAGE_SIZE }))
     }
   }
 
@@ -99,7 +100,7 @@ const Posts = () => {
   }
 
   let p = page + 1
-  let countPagination = Math.ceil(count / 5)
+  let countPagination = Math.ceil(count / PAGE_SIZE)
 
   return (
     <>
@@ -203,141 +204,37 @@ const Posts = () => {
             </Table>
             {posts && posts?.length === 0 && <NodataMsg />}
           </Card.Body>
-          <Pagination
-            page={page}
-            handlePageClick={handlePageClick}
-            countPagination={countPagination}
-          />
+          {countPagination > 0 && (
+            <Pagination
+              page={page}
+              handlePageClick={handlePageClick}
+              countPagination={countPagination}
+            />
+          )}
         </Card>
       </Container>
 
       {/* View Post Details Modal */}
       {/* View Post Details Modal */}
       <CModal
-        alignment="center"
         visible={detailVisible}
-        onClose={() => setDetailVisible(false)}
+        onClose={() => {
+          // Remove focus from close button BEFORE hiding modal
+          if (document.activeElement instanceof HTMLElement) {
+            document.activeElement.blur()
+          }
+
+          setDetailVisible(false)
+        }}
         size="lg"
       >
-        {/* HEADER */}
-        <CModalHeader className="border-0 pb-0 align-items-start">
-          <div className="d-flex flex-column">
-            <div className="d-flex align-items-center gap-2 mb-1">
-              <CModalTitle className="fw-semibold fs-5">Post Details</CModalTitle>
-            </div>
-            <small className="text-muted m-xl-2">
-              Created On{' '}
-              {selectedPost?.createdAt
-                ? new Date(selectedPost.createdAt).toLocaleString('en-IN', {
-                    dateStyle: 'medium',
-                    timeStyle: 'short',
-                  })
-                : ''}
-            </small>
-          </div>
+        <CModalHeader>
+          <CModalTitle>Post Details</CModalTitle>
         </CModalHeader>
 
-        {/* BODY */}
         <CModalBody>
-          {!selectedPost ? (
-            <p>Loading post details...</p>
-          ) : (
-            <div className="container-fluid">
-              {/* Top row: Post ID + Author + Stats */}
-              <div className="row mb-4 align-items-center">
-                <div className="col-md-6 mb-2 mb-md-0">
-                  <label className="text-uppercase text-muted small mb-1">Post ID</label>
-                  <div className="d-flex align-items-center">
-                    <code className="text-danger bg-light px-2 py-1 rounded me-2">
-                      {selectedPost.postId}
-                    </code>
-                    <Button
-                      variant="outline-secondary"
-                      size="sm"
-                      onClick={() => navigator.clipboard?.writeText(selectedPost.postId)}
-                    >
-                      Copy
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="col-md-3 mb-2 mb-md-0">
-                  <label className="text-uppercase text-muted small mb-1">Author</label>
-                  <div className="fw-semibold">{selectedPost.userName}</div>
-                </div>
-
-                <div className="col-12 mt-3">
-                  <div className="d-flex flex-wrap gap-3">
-                    <span className="badge text-bg-secondary">
-                      Comments: {selectedPost.commentCount ?? 0}
-                    </span>
-                    <span className="badge text-bg-info">Saves: {selectedPost.saveCount ?? 0}</span>
-                    <span className="badge text-bg-success">
-                      Likes: {selectedPost.likeCount ?? 0}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Second row: Content Preview + Media */}
-              <div className="row g-4">
-                <div className="col-lg-7">
-                  <div className="card shadow-sm border-0 h-100">
-                    <div className="card-body">
-                      <h6 className="fw-semibold mb-2">Content Preview</h6>
-                      <p className="post-content text-secondary mb-0">
-                        {selectedPost.contentPreview ||
-                          selectedPost.content ||
-                          'No content available.'}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="col-lg-5">
-                  <div className="card shadow-sm border-0 h-100 d-flex align-items-center justify-content-center">
-                    <div className="card-body text-center">
-                      <h6 className="fw-semibold mb-3">Media</h6>
-                      {selectedPost.postImages && selectedPost.postImages.length > 0 ? (
-                        <div
-                          style={{
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(2, 1fr)',
-                            gap: '10px',
-                            padding: '10px',
-                          }}
-                        >
-                          {selectedPost.postImages.map((img, index) => (
-                            <img
-                              key={index}
-                              src={img}
-                              alt={`media-${index}`}
-                              style={{
-                                width: '100%',
-                                height: '140px',
-                                objectFit: 'cover',
-                                borderRadius: '10px',
-                              }}
-                            />
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="text-muted small">No image available</div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+          <PostDetails post={selectedPost} loading={!selectedPost} />
         </CModalBody>
-
-        {/* FOOTER */}
-        <CModalFooter className="border-0 pt-0">
-          <CButton color="secondary" variant="outline" onClick={() => setDetailVisible(false)}>
-            Close
-          </CButton>
-        </CModalFooter>
       </CModal>
     </>
   )

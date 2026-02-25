@@ -2,180 +2,170 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { appConfig } from '../../config'
 
 const token = localStorage.getItem('token')
-const dateConverter = (dateString) => {
-  const dateObject = new Date(dateString)
 
-  // Extract parts of the date
-  const year = dateObject.getFullYear()
-  const month = String(dateObject.getMonth() + 1).padStart(2, '0') // Months are zero-indexed
-  const day = String(dateObject.getDate()).padStart(2, '0')
-  const hours = String(dateObject.getHours()).padStart(2, '0')
-  const minutes = String(dateObject.getMinutes()).padStart(2, '0')
-  const seconds = String(dateObject.getSeconds()).padStart(2, '0')
+const ip = `${appConfig.ip}`
 
-  // Format the date
-  const formattedDate = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`
-
-  return formattedDate
-}
-
-//read action
-export const showChartData = createAsyncThunk(
-  'showChartData',
-  async (data, { rejectWithValue }) => {
-    let response
-    if (data === 'Month') {
-      response = await fetch(`${appConfig.ip}/admin/dashboard/monthly`, {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-    } else if (data === 'Date') {
-      response = await fetch(`${appConfig.ip}/admin/dashboard/daily`, {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-    } else {
-      response = await fetch(`${appConfig.ip}/admin/dashboard/yearly`, {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-    }
-
+export const fetchTopPosts = createAsyncThunk(
+  'dashboard/fetchTopPosts',
+  async ({ limit }, { rejectWithValue }) => {
     try {
-      const result = await response.json()
-      return result
+      const response = await fetch(`${ip}/api/post/admin/posts/top-posts?limit=${limit}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch')
+      }
+
+      return await response.json()
     } catch (error) {
-      return rejectWithValue(error)
+      return rejectWithValue(error.message)
     }
   },
 )
 
-//read action
-export const showCounts = createAsyncThunk('showCounts', async (data, { rejectWithValue }) => {
-  let response
-  response = await fetch(`${appConfig.ip}/admin/dashboard/count`, {
-    method: 'GET',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  })
+export const fetchRecentUsers = createAsyncThunk(
+  'admin/fetchRecentUsers',
+  async ({ limit }, { rejectWithValue }) => {
+    try {
+      const response = await fetch(`${ip}/user/admin/recent-users?limit=${limit}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      })
 
-  try {
-    const result = await response.json()
-    return result
-  } catch (error) {
-    return rejectWithValue(error)
+      if (!response.ok) {
+        throw new Error('Failed to fetch recent users')
+      }
+
+      return await response.json()
+    } catch (error) {
+      return rejectWithValue(error.message)
+    }
+  },
+)
+
+/* =========================
+   🔹 Fetch Post Stats
+========================= */
+export const fetchPostStats = createAsyncThunk(
+  "dashboard/fetchPostStats",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await fetch(`${ip}/api/post/admin/posts/post-stats`,{
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch post stats");
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.log(error.message)
+      return rejectWithValue(error.message);
+    }
   }
-})
+);
 
-export const showTop10Product = createAsyncThunk(
-  'showTop10Product',
-  async (data, { rejectWithValue }) => {
-    let response
-    response = await fetch(`${appConfig.ip}/product/top10`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-
+/* =========================
+   🔹 Fetch User Stats
+========================= */
+export const fetchUserStats = createAsyncThunk(
+  "dashboard/fetchUserStats",
+  async (_, { rejectWithValue }) => {
     try {
-      const result = await response.json()
-      return result
+      const response = await fetch(`${ip}/user/admin/user-stats`);
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch user stats");
+      }
+
+      return await response.json();
     } catch (error) {
-      return rejectWithValue(error)
+      return rejectWithValue(error.message);
     }
-  },
-)
+  }
+);
 
-export const showTop10Category = createAsyncThunk(
-  'showTop10Category',
-  async (data, { rejectWithValue }) => {
-    let response
-    response = await fetch(`${appConfig.ip}/category/top10`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-
-    try {
-      const result = await response.json()
-      return result
-    } catch (error) {
-      return rejectWithValue(error)
-    }
-  },
-)
-
-export const salesSlice = createSlice({
-  name: 'sales',
+const dashboardSlice = createSlice({
+  name: 'dashboard',
   initialState: {
-    chartData: [],
-    loading: false,
+    topPosts: [],
+    recentUsers: [],
+    postStats: {
+      totalPosts: 0,
+      pendingReports: 0,
+      pendingAppeals: 0,
+    },
+    userStats: {
+      totalUsers: 0,
+      activeToday: 0,
+    },
+    topLoading: false,
+    loadingUsers: false,
+    loadingStats: false,
     error: null,
-    searchData: [],
-    counts: '',
-    top10Product: [],
-    top10Category: [],
+
   },
-
-  reducers: {},
-
   extraReducers: (builder) => {
     builder
+      .addCase(fetchTopPosts.pending, (state) => {
+        state.loading = true
+      })
+      .addCase(fetchTopPosts.fulfilled, (state, action) => {
+        state.loading = false
+        state.topPosts = action.payload
+      })
+      .addCase(fetchTopPosts.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload
+      })
+      // Recent Users
+      .addCase(fetchRecentUsers.pending, (state) => {
+        state.loadingUsers = true
+      })
+      .addCase(fetchRecentUsers.fulfilled, (state, action) => {
+        state.loadingUsers = false
+        state.recentUsers = action.payload
+      })
+      .addCase(fetchRecentUsers.rejected, (state, action) => {
+        state.loadingUsers = false
+        state.error = action.payload
+      })
+       // Post Stats
+      .addCase(fetchPostStats.pending, (state) => {
+        state.loadingStats = true;
+      })
+      .addCase(fetchPostStats.fulfilled, (state, action) => {
+        state.loadingStats = false;
+        state.postStats = action.payload;
+      })
+      .addCase(fetchPostStats.rejected, (state, action) => {
+        state.loadingStats = false;
+        state.error = action.payload;
+      })
 
-      .addCase(showChartData.pending, (state) => {
-        state.loading = true
+      // User Stats
+      .addCase(fetchUserStats.pending, (state) => {
+        state.loadingStats = true;
       })
-      .addCase(showChartData.fulfilled, (state, action) => {
-        state.loading = false
-        state.chartData = action.payload
+      .addCase(fetchUserStats.fulfilled, (state, action) => {
+        state.loadingStats = false;
+        state.userStats = action.payload;
       })
-      .addCase(showChartData.rejected, (state, action) => {
-        state.loading = false
-        state.error = action.payload
-      })
-      .addCase(showCounts.pending, (state) => {
-        state.loading = true
-      })
-      .addCase(showCounts.fulfilled, (state, action) => {
-        state.loading = false
-        state.counts = action.payload
-      })
-      .addCase(showCounts.rejected, (state, action) => {
-        state.loading = false
-        state.error = action.payload
-      })
-      .addCase(showTop10Product.pending, (state) => {
-        state.loading = true
-      })
-      .addCase(showTop10Product.fulfilled, (state, action) => {
-        state.loading = false
-        state.top10Product = action.payload
-      })
-      .addCase(showTop10Product.rejected, (state, action) => {
-        state.loading = false
-        state.error = action.payload
-      })
-      .addCase(showTop10Category.pending, (state) => {
-        state.loading = true
-      })
-      .addCase(showTop10Category.fulfilled, (state, action) => {
-        state.loading = false
-        state.top10Category = action.payload
-      })
-      .addCase(showTop10Category.rejected, (state, action) => {
-        state.loading = false
-        state.error = action.payload
-      })
+      .addCase(fetchUserStats.rejected, (state, action) => {
+        state.loadingStats = false;
+        state.error = action.payload;
+      });
   },
 })
 
-export default salesSlice.reducer
+export default dashboardSlice.reducer

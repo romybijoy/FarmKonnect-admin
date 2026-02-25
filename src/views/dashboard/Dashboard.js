@@ -11,6 +11,12 @@ import ReportsPanel from './ReportsPanel'
 import { fetchReports } from '../../redux/slices/ReportsSlice'
 import { fetchAppeals } from '../../redux/slices/AppealSlice'
 import AppealsPanel from './AppealsPanel'
+import {
+  fetchPostStats,
+  fetchRecentUsers,
+  fetchTopPosts,
+  fetchUserStats,
+} from '../../redux/slices/DashboardSlice'
 
 /**
  * AdminSocialDashboard.jsx
@@ -18,37 +24,33 @@ import AppealsPanel from './AppealsPanel'
  * - Replace mock data with your Redux selectors/actions
  */
 export default function Dashboard() {
-  const [range, setRange] = useState('7d')
-
   const dispatch = useDispatch()
   const navigate = useNavigate()
-  const { count, posts } = useSelector((state) => state.post)
-  // const { total } = reportsState
-  const { userCount, users } = useSelector((state) => state.app)
+
+  const { topPosts, recentUsers, postStats, userStats, loadingStats, loadingUsers, error } =
+    useSelector((state) => state.dashboard)
 
   const reportsState = useSelector((s) => s.reports)
   const { total } = reportsState
 
   useEffect(() => {
-    dispatch(showPosts({ page: 0, pageSize: 5 }))
-    dispatch(showUser({ page: 0 }))
+    dispatch(fetchPostStats())
+    dispatch(fetchUserStats())
+    dispatch(fetchTopPosts({ limit: 5 }))
+    dispatch(fetchRecentUsers({ limit: 5 }))
     dispatch(fetchReports({ status: 'PENDING' }))
-    dispatch(fetchAppeals({status: 'PENDING'}))
+    dispatch(fetchAppeals({ status: 'PENDING' }))
   }, [])
   // --- MOCK DATA (replace with real) ---
 
   const stats = useMemo(
     () => ({
-      totalUsers: userCount ?? 0,
-      totalPosts: count ?? 0,
-      activeToday: userCount ?? 0,
-      pendingReports: total ?? 0,
-      trendUsers: '+3.2%',
-      trendPosts: '+1.1%',
-      trendActive: '+12%',
-      trendReports: '-22%',
+      totalUsers: userStats.totalUsers ?? 0,
+      totalPosts: postStats.totalPosts ?? 0,
+      activeToday: userStats.activeToday ?? 0,
+      pendingReports: postStats.pendingReports ?? 0,
     }),
-    [count, userCount],
+    [postStats, userStats],
   )
 
   const adminAppeals = useSelector((state) => state.appeals)
@@ -296,15 +298,15 @@ export default function Dashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {posts.map((p) => (
+                  {topPosts.map((p) => (
                     <tr key={p.postId}>
                       <td>
                         <code>{p.postId}</code>
                       </td>
-                      <td>{p.userName}</td>
-                      <td className="text-end">{p.likeCount}</td>
-                      <td className="text-end">{p.commentCount}</td>
-                      <td className="text-end">{p.saveCount}</td>
+                      <td>{p.authorName}</td>
+                      <td className="text-end">{p.likes}</td>
+                      <td className="text-end">{p.comments}</td>
+                      <td className="text-end">{p.saves}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -320,7 +322,7 @@ export default function Dashboard() {
             </Card.Header>
             <Card.Body className="pt-2">
               <div className="d-flex flex-column gap-3">
-                {users.map((u, idx) => (
+                {recentUsers.map((u, idx) => (
                   <div key={idx} className="d-flex align-items-center justify-content-between">
                     <div className="d-flex align-items-center gap-2">
                       <Initials name={u.name} />
